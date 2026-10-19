@@ -35,7 +35,7 @@ dialogue_2=[
     ('main',"Let's see if I can help them.")
 ]
 dialogue_3=[
-    ()
+    ('main','Boss Fight(I decided to work on this first)'),
 ]
 dialogues=[dialogue_2,dialogue_3]
 
