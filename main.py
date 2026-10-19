@@ -80,9 +80,12 @@ class Player:
         self.health=100
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (100, 100))
+        self.rect=pygame.Rect(self.x,self.y,100,100)
     def draw(self,screen):
         if self.show:
             screen.blit(self.img, (self.x, self.y))
+    def update(self):
+        self.rect=pygame.Rect(self.x,self.y,100,100)
 class Character:
     def __init__(self,x,y,name):
         self.x=x
@@ -159,7 +162,13 @@ class Boss_Pattern:
         self.rect=pygame.Rect(x,y,150,150)
     def draw(self,screen):
         screen.blit(self.img, (self.x, self.y))
-
+class Bullet:
+    def __init__(self, direction):
+        self.direction = direction
+        self.x=cursed_child.x
+        self.y=cursed_child.y
+        self.img="assets/characters/cross2.png"
+        
 
 #Dialogue Management system
 active_dialogue_index=0
@@ -308,11 +317,11 @@ while running:
                     attack_disappear_timer=1
                     for pattern in boss_patterns:
                         boss_attacks.append(Boss_Attack(pattern.x,pattern.y))
+                    boss_patterns=[]
                     
             if attack_disappear:
                 attack_disappear_timer-=dt
                 if attack_disappear_timer<0:
-                    boss_patterns=[]
                     boss_attacks=[]
                     phase+=1
                     attack_disappear=False
@@ -324,16 +333,23 @@ while running:
                 boss_attacks=[]
             attack_spawn_timer-=dt
             if attack_spawn_timer<0:
-                attack_spawn_timer=0.25
+                attack_spawn_timer=0.5
                 boss_patterns.append(Boss_Pattern(player.x,player.y))
             attack_timer-=dt
             if attack_timer<0:
-                attack_timer=0.28
+                attack_timer=0.75
                 if boss_patterns:
                     boss_attacks.append(Boss_Attack(boss_patterns[0].x,boss_patterns[0].y))
                     boss_patterns.pop(0)
-        
-            
+        for j in boss_attacks:
+            if j.rect.colliderect(player.rect):
+                player.health-=1
+                boss_attacks.remove(j)
+        if phase%5==0:
+            stop_timer-=dt
+            if stop_timer<0:
+                stop_timer=10
+
             
             
                  
@@ -383,7 +399,7 @@ while running:
         screen.fill((0,0,0))
 
 
-        
+        player.update()
         if active_chatbox:
             active_chatbox.update()
             active_chatbox.draw(screen)
@@ -394,6 +410,7 @@ while running:
         for i in boss_attacks:
             i.draw(screen)
         cursed_child.draw(screen)
+        draw_text("Health: "+str(player.health),chat_font,(255,0,0),50,50)
 
         
 
@@ -402,7 +419,6 @@ while running:
     blur_surface=pygame.Surface((1530, 880), pygame.SRCALPHA)
     blur_surface.fill((0, 0, 0, brightness))
     screen.blit(blur_surface, (0, 0))
-    draw_text("Health: "+str(player.health),chat_font,(255,0,0),50,50)
 
     pygame.display.flip()
 
