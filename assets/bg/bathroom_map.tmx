@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="5" height="4" tilewidth="48" tileheight="48" infinite="0" nextlayerid="5" nextobjectid="1">
+ <tileset firstgid="1" source="Modern House Bathroom 2.0.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="5" height="4">
+  <data encoding="csv">
+42,0,42,42,42,
+42,42,42,42,42,
+41,41,41,41,41,
+41,41,41,41,41
+</data>
+ </layer>
+ <layer id="2" name="Tile Layer 2" width="5" height="4">
+  <data encoding="csv">
+26,7,0,0,0,
+34,5,0,0,29,
+0,0,0,0,0,
+0,0,0,0,17
+</data>
+ </layer>
+ <layer id="3" name="Tile Layer 3" width="5" height="4">
+  <data encoding="csv">
+0,0,0,0,0,
+0,35,4,12,23,
+0,0,0,0,0,
+0,0,0,0,0
+</data>
+ </layer>
+ <objectgroup id="4" name="Object Layer 1"/>
+</map>

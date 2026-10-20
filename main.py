@@ -2,6 +2,9 @@ import pygame
 import random
 import math
 import os
+import pytmx
+from pytmx.util_pygame import load_pygame
+
 #Setup
 pygame.init()
 pygame.mixer.init()
@@ -13,16 +16,12 @@ clock=pygame.time.Clock()
 #Color
 light_wood=(199,153,82)
 beige=(237,203,152)
-#Asset
+#Font
 game_title=pygame.font.Font('assets//Font//bloodfont.ttf',175)
 chat_font=pygame.font.Font('assets/Font/gothic.ttf', 50)
 small_font=pygame.font.Font('assets/Font/gothic.ttf', 20)
-#Background
-cutscene_bg = pygame.image.load("assets/bg/background.png").convert_alpha()
-cutscene_bg = pygame.transform.scale(cutscene_bg, (1530, 880))
-cutscene_bg2 = pygame.image.load("assets/bg/background2.png").convert_alpha()
-cutscene_bg2= pygame.transform.scale(cutscene_bg2, (1530, 880))
-current_bg = cutscene_bg
+
+
 #Functions
 def draw_text(text, font, color, x, y):
     img = font.render(text, True, color)
@@ -36,7 +35,7 @@ dialogue_2=[
     ('main',"Let's see if I can help them.")
 ]
 dialogue_3=[
-    ('main','Boss Fight(I decided to work on this first)'),
+    ('main','Hello lil boy'),
 ]
 dialogues=[dialogue_2,dialogue_3]
 
@@ -87,12 +86,20 @@ class Player:
             screen.blit(self.img, (self.x, self.y))
     def update(self):
         self.rect=pygame.Rect(self.x,self.y,100,100)
+
+
 class Character:
     def __init__(self,x,y,name):
         self.x=x
         self.y=y
+        self.target_x=x
+        self.target_y=y
+        self.direction='right'
         if name=='maid':
-            self.img="assets/characters/maid.png"
+            idle_path="assets/characters/maid_idling"
+            walk_path="assets/characters/maid_walking"
+            self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (60,90 )) for f in os.listdir(idle_path) if f.endswith(".png")]
+            self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (60, 90)) for f in os.listdir(walk_path) if f.endswith(".png")]
         elif name=='grandpa':
             self.img="assets/characters/grandpa.png"
         elif name=='child':
@@ -106,8 +113,25 @@ class Character:
         self.img=self.idles[self.idle_index]
         self.animation_timer=0
         self.animation_speed=0.1
+        self.speed=50
     def draw(self,screen):
         screen.blit(self.img, (self.x, self.y))
+    def move_towards(self,dt):
+        dx=self.target_x-self.x
+        self.direction='right' if dx>0 else 'left'
+        dy=self.target_y-self.y
+        distance=math.hypot(dx,dy)
+        if distance<=self.speed*dt:
+            self.x=self.target_x
+            self.y=self.target_y
+            self.is_moving=False
+            return
+        else:
+            self.is_moving=True
+            self.x+=dx/distance*self.speed*dt
+            self.y+=dy/distance*self.speed*dt
+
+        
 class Chatbox:
     def __init__(self,character,content):
         img_path="assets/characters/main_character.png"
@@ -189,12 +213,37 @@ class Bullet:
     def move(self,dt):
         self.x+=dt*self.speed*math.cos(self.direction/180*math.pi)
         self.y+=dt*self.speed*math.sin(self.direction/180*math.pi)
-               
+class Door:
+    def __init__(self,x,y,origin,goal):
+        self.x=x
+        self.y=y
+        self.rect=pygame.Rect(x,y,20,100)
+        self.origin=origin
+        self.goal=goal
+    def draw(self,screen):
+        pygame.draw.rect(screen,(0,0,0),self.rect,0)
+    
 
 #Dialogue Management system
 active_dialogue_index=0
 active_chat_index=0
 active_chatbox=Chatbox(dialogues[active_dialogue_index][active_chat_index][0],dialogues[active_dialogue_index][active_chat_index][1])
+
+#Background
+cutscene_bg = pygame.image.load("assets/bg/background.png").convert_alpha()
+cutscene_bg = pygame.transform.scale(cutscene_bg, (1530, 880))
+cutscene_bg2 = pygame.image.load("assets/bg/background2.png").convert_alpha()
+cutscene_bg2= pygame.transform.scale(cutscene_bg2, (1530, 880))
+living_room=load_pygame('assets/bg/living_room_map.tmx')
+bathroom=load_pygame('assets/bg/bathroom_map.tmx')
+kitchen=load_pygame('assets/bg/kitchen_map.tmx')
+bedroom1=load_pygame('assets/bg/bedroom_map.tmx')
+bedroom2=load_pygame('assets/bg/bedroom2_map.tmx')
+map_scale=2.5
+scaled_tile_cache={}
+current_bg = cutscene_bg
+location=living_room
+doors=[Door(200,400,living_room,bedroom1)]
 
 
 candles=[Decor(100,600,250,'candle'),Decor(1200,600,250,'candle'),Decor(300,600,150,'candle'),Decor(1050,600,150,'candle'),Decor(475,600,75,'candle'), Decor(950,600,75,'candle')]
@@ -203,6 +252,8 @@ playertest=Playertest()
 player=Player()
 cursed_child=Boss(700,400)
 child=Character(700,400,'child')
+maid=Character(900,400,'maid')
+npcs=[child]
 boss_attacks=[]
 boss_patterns=[]
 #Variables
@@ -246,6 +297,11 @@ while running:
                         active_chatbox=Chatbox(next_char,next_text)
                     else:
                         active_chatbox=None
+            if stage=='house':
+                child.target_x=event.pos[0]
+                child.target_y=event.pos[1]
+        
+
     keys=pygame.key.get_pressed()
     #Cutscene movement  
     if stage=='cutscene' and active_chatbox==None:
@@ -259,7 +315,17 @@ while running:
             if playertest.direction=='left':
                 playertest.direction='right'
                 playertest.img=pygame.transform.flip(playertest.img, True, False)
-    
+    if stage=='house' and active_chatbox==None:
+        if keys[pygame.K_1]:
+            location=living_room
+        if keys[pygame.K_2]:
+            location=bedroom1
+        if keys[pygame.K_3]:
+            location=bedroom2
+        if keys[pygame.K_4]:
+            location=kitchen
+        if keys[pygame.K_5]:
+            location=bathroom
     #MOVEMENT 
     if (stage=='house' or stage=='boss') and active_chatbox==None:    
         dx=0
@@ -318,7 +384,10 @@ while running:
             playertest.show=False
 
     #Stage 3 Logic
+    elif stage=='house':
+        child.move_towards(dt)
 
+        
 
 
 
@@ -326,6 +395,9 @@ while running:
 
     #Stage 7 Logic
     elif stage=='boss':
+        #Boss logic
+
+        #Mass Attack
         if phase%3!=0 or phase==0:
             if not attack and not attack_disappear:
                 attack_spawn_timer-=dt
@@ -355,6 +427,7 @@ while running:
                     boss_attacks=[]
                     phase+=1
                     attack_disappear=False
+        #Chase Attack
         elif phase%3==0:
             stop_timer-=dt
             if stop_timer<0:
@@ -373,6 +446,7 @@ while running:
                 if boss_patterns:
                     boss_attacks.append(Boss_Attack(boss_patterns[0].x,boss_patterns[0].y))
                     boss_patterns.pop(0)
+        #Bullet Spread Attack
         bullet_timer-=dt
         if bullet_timer<0:
             bullet_timer=15
@@ -434,18 +508,55 @@ while running:
 
     #Stage 3 Rendering
     elif stage=='house':
-        screen.fill((0,128,128))
+        screen.fill((0,0,0))
+        map_pixel_width=location.width*location.tilewidth*map_scale
+        map_pixel_height=location.height*location.tileheight*map_scale
+
+        offset_x=(1530-map_pixel_width)//2
+        offset_y=(880-map_pixel_height)//2
+        for layer in location.layers:
+            if isinstance(layer,pytmx.TiledTileLayer):
+                for x,y, gid in layer:
+                    if gid==0:
+                        continue
+                    cache_key=(location.filename,gid)
+                    #Create scale img
+                    if cache_key not in scaled_tile_cache:
+                        original_img=location.get_tile_image_by_gid(gid)
+                        if original_img:
+                            w,h=original_img.get_size()
+                            #Scale
+                            scaled_tile_cache[cache_key]=pygame.transform.scale(original_img,(w*map_scale,h*map_scale))
+                    #Draw after scaling
+                    tile_image=scaled_tile_cache[cache_key]
+                    if tile_image:
+                        pixel_x=x*location.tilewidth*map_scale+offset_x
+                        pixel_y=y*location.tileheight*map_scale+offset_y
+                        screen.blit(tile_image,(pixel_x,pixel_y))
+
         player.draw(screen)
-        child.animation_timer+=dt
-        if child.animation_timer>child.animation_speed:
-            child.animation_timer=0
-            if child.is_moving==False:
-                child.idle_index+=1
-                child.img=child.idles[child.idle_index%len(child.idles)]
-            else:
-                child.walk_index+=1
-                child.img=child.walks[child.walk_index%len(child.walks)]
-        child.draw(screen)
+        for npc in npcs:
+            npc.animation_timer+=dt
+            if npc.animation_timer>npc.animation_speed:
+                npc.animation_timer=0
+                if npc.is_moving==False:
+                    npc.idle_index+=1
+                    npc.img=npc.idles[npc.idle_index%len(npc.idles)]
+                    if npc.direction=='left':
+                        npc.img=pygame.transform.flip(npc.img,True,False)
+                else:
+                    npc.walk_index+=1
+                    npc.img=npc.walks[npc.walk_index%len(npc.walks)]
+                    if npc.direction=='left':
+                        npc.img=pygame.transform.flip(npc.img,True,False)
+            npc.draw(screen)
+
+        for door in doors:
+            if door.origin==location:
+                door.draw(screen)
+        if active_chatbox:
+            active_chatbox.update()
+            active_chatbox.draw(screen)
         
 
 
