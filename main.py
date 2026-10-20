@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+import os
 #Setup
 pygame.init()
 pygame.mixer.init()
@@ -94,8 +95,17 @@ class Character:
             self.img="assets/characters/maid.png"
         elif name=='grandpa':
             self.img="assets/characters/grandpa.png"
-        self.img = pygame.image.load(self.img).convert_alpha()
-        self.img = pygame.transform.scale(self.img, (100, 100))
+        elif name=='child':
+            idle_path="assets/characters/child_idling"
+            walk_path="assets/characters/child_walking"
+            self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (48,80 )) for f in os.listdir(idle_path) if f.endswith(".png")]
+            self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (48, 80)) for f in os.listdir(walk_path) if f.endswith(".png")]
+        self.is_moving=False
+        self.idle_index=0
+        self.walk_index=0
+        self.img=self.idles[self.idle_index]
+        self.animation_timer=0
+        self.animation_speed=0.1
     def draw(self,screen):
         screen.blit(self.img, (self.x, self.y))
 class Chatbox:
@@ -149,7 +159,7 @@ class Boss_Attack:
         self.img="assets/characters/cross1.png"
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (150, 150))
-        self.rect=pygame.Rect(x,y,150,150)
+        self.rect=pygame.Rect(x+20,y+20,110,110)
     def draw(self,screen):
         screen.blit(self.img, (self.x, self.y))
 class Boss_Pattern:
@@ -163,12 +173,23 @@ class Boss_Pattern:
     def draw(self,screen):
         screen.blit(self.img, (self.x, self.y))
 class Bullet:
-    def __init__(self, direction):
-        self.direction = direction
+    def __init__(self, angle):
+        self.direction = angle
         self.x=cursed_child.x
         self.y=cursed_child.y
         self.img="assets/characters/cross2.png"
-        
+        self.img = pygame.image.load(self.img).convert_alpha()
+        self.img = pygame.transform.scale(self.img, (100, 100))
+        self.rect=pygame.Rect(self.x+15,self.y+15,70,70)
+        self.speed=100
+    def draw(self,screen):
+        screen.blit(self.img, (self.x, self.y))
+    def update(self):
+        self.rect=pygame.Rect(self.x+15,self.y+15,70,70)
+    def move(self,dt):
+        self.x+=dt*self.speed*math.cos(self.direction/180*math.pi)
+        self.y+=dt*self.speed*math.sin(self.direction/180*math.pi)
+               
 
 #Dialogue Management system
 active_dialogue_index=0
@@ -181,6 +202,7 @@ fires=[Decor(165,560,100,'fire'),Decor(1270,560,100,'fire'),Decor(345,585,50,'fi
 playertest=Playertest()
 player=Player()
 cursed_child=Boss(700,400)
+child=Character(700,400,'child')
 boss_attacks=[]
 boss_patterns=[]
 #Variables
@@ -194,9 +216,10 @@ attack=False
 attack_disappear_timer=2
 attack_disappear=False
 phase=0
-stop_timer=10
+stop_timer=6
 n=0
-
+bullets=[]
+bullet_timer=15
 
 #GAME LOOP
 running=True
@@ -212,7 +235,7 @@ while running:
                 blow_candle=True
         if stage=='start' and event.type == pygame.KEYDOWN:
             if event.key == pygame.K_8:
-                stage='house'
+                stage='boss'
         #Next Dialogue
         if event.type==pygame.MOUSEBUTTONDOWN:
             if active_chatbox and active_chatbox.rect.collidepoint(pygame.mouse.get_pos()):
@@ -238,7 +261,7 @@ while running:
                 playertest.img=pygame.transform.flip(playertest.img, True, False)
     
     #MOVEMENT 
-    if stage=='house' and active_chatbox==None:    
+    if (stage=='house' or stage=='boss') and active_chatbox==None:    
         dx=0
         dy=0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:dx-=1
@@ -295,7 +318,14 @@ while running:
             playertest.show=False
 
     #Stage 3 Logic
-    elif stage=='house':
+
+
+
+
+
+
+    #Stage 7 Logic
+    elif stage=='boss':
         if phase%3!=0 or phase==0:
             if not attack and not attack_disappear:
                 attack_spawn_timer-=dt
@@ -328,27 +358,38 @@ while running:
         elif phase%3==0:
             stop_timer-=dt
             if stop_timer<0:
-                stop_timer=10
+                stop_timer=6
                 phase+=1
                 boss_attacks=[]
             attack_spawn_timer-=dt
             if attack_spawn_timer<0:
                 attack_spawn_timer=0.5
                 boss_patterns.append(Boss_Pattern(player.x,player.y))
-            attack_timer-=dt
+                attack=True
+            if attack:
+                attack_timer-=dt
             if attack_timer<0:
-                attack_timer=0.75
+                attack_timer=0.5
                 if boss_patterns:
                     boss_attacks.append(Boss_Attack(boss_patterns[0].x,boss_patterns[0].y))
                     boss_patterns.pop(0)
-        for j in boss_attacks:
+        bullet_timer-=dt
+        if bullet_timer<0:
+            bullet_timer=15
+            for i in range(0,360,36):
+                bullets.append(Bullet(i))
+        for j in boss_attacks[:]:
             if j.rect.colliderect(player.rect):
                 player.health-=1
                 boss_attacks.remove(j)
-        if phase%5==0:
-            stop_timer-=dt
-            if stop_timer<0:
-                stop_timer=10
+        for bullet in bullets:
+            bullet.move(dt)
+            if bullet.rect.colliderect(player.rect):
+                bullets.remove(bullet)
+                player.health-=1
+
+        
+
 
             
             
@@ -391,15 +432,32 @@ while running:
 
 
 
-
-
-
     #Stage 3 Rendering
     elif stage=='house':
+        screen.fill((0,128,128))
+        player.draw(screen)
+        child.animation_timer+=dt
+        if child.animation_timer>child.animation_speed:
+            child.animation_timer=0
+            if child.is_moving==False:
+                child.idle_index+=1
+                child.img=child.idles[child.idle_index%len(child.idles)]
+            else:
+                child.walk_index+=1
+                child.img=child.walks[child.walk_index%len(child.walks)]
+        child.draw(screen)
+        
+
+
+    #Stage 7 Rendering
+    elif stage=='boss':
         screen.fill((0,0,0))
 
 
         player.update()
+        for bullet in bullets:
+            bullet.update()
+            bullet.draw(screen)
         if active_chatbox:
             active_chatbox.update()
             active_chatbox.draw(screen)
