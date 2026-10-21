@@ -30,9 +30,9 @@ def draw_text(text, font, color, x, y):
 
 #DIALOGUE
 dialogue_2=[
-    ('main','This house, I finally found it.'),
-    ('main',"I heard this house is cursed by some evil spirits."),
-    ('main',"Let's see if I can help them.")
+    ('main','This house, I finally found it.')
+    #('main',"I heard this house is cursed by some evil spirits."),
+    #('main',"Let's see if I can help them.")
 ]
 dialogue_3=[
     ('main','Hello lil boy'),
@@ -72,12 +72,23 @@ class Playertest:
 class Player:
     def __init__(self):
         self.x=700
-        self.y=800
+        self.y=700
         self.direction='right'
         self.show=True
         self.img="assets/characters/main_character.png"
         self.speed=6
         self.health=100
+        self.direction='right'
+        self.is_walking=False
+        idle_path="assets/characters/priest_idling"
+        walk_path="assets/characters/priest_walking"
+        self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (60,90 )) for f in os.listdir(idle_path) if f.endswith(".png")]
+        self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (60, 90)) for f in os.listdir(walk_path) if f.endswith(".png")]
+        self.idle_index=0
+        self.walk_index=0
+        self.img=self.idles[self.idle_index]
+        self.animation_timer=0
+        self.animation_speed=0.1
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (100, 100))
         self.rect=pygame.Rect(self.x,self.y,100,100)
@@ -220,8 +231,13 @@ class Door:
         self.rect=pygame.Rect(x,y,20,100)
         self.origin=origin
         self.goal=goal
+        self.paired_door=None
+        if self.origin==living_room and self.goal==bathroom:
+            self.rect=pygame.Rect(x,y,60,100)
+        if self.origin==bathroom and self.goal==living_room:
+            self.rect=pygame.Rect(x,y,100,20)
     def draw(self,screen):
-        pygame.draw.rect(screen,(0,0,0),self.rect,0)
+        pygame.draw.rect(screen,(255,255,255),self.rect,0)
     
 
 #Dialogue Management system
@@ -243,7 +259,27 @@ map_scale=2.5
 scaled_tile_cache={}
 current_bg = cutscene_bg
 location=living_room
-doors=[Door(200,400,living_room,bedroom1)]
+current_collisions=[]
+doors=[
+    Door(205,400,living_room,bedroom1),Door(1305,350,living_room,kitchen),Door(400,220,living_room,bathroom), #Living Room
+    Door(1185,600,bedroom1,living_room), #Bedroom 1
+    Door(385,400,kitchen,living_room),Door(1125,550,kitchen,bedroom2), #Kitchen
+    Door(445,400,bedroom2,kitchen), #Bedroom 2
+    Door(500,680,bathroom,living_room) #Bathroom
+       ]
+for door1 in doors:
+    for door2 in doors:
+        if door1.origin==door2.goal and door1.goal==door2.origin:
+            door1.paired_door=door2
+            break
+def get_map_collision(map,scale,offset_x,offset_y):
+    rects=[]
+    for layer in map.layers:
+        if isinstance(layer,pytmx.TiledObjectGroup):
+            for obj in layer:
+                scaled_rect=pygame.Rect(obj.x*scale+offset_x,obj.y*scale+offset_y,obj.width*scale,obj.height*scale)
+                rects.append(scaled_rect)
+    return rects
 
 
 candles=[Decor(100,600,250,'candle'),Decor(1200,600,250,'candle'),Decor(300,600,150,'candle'),Decor(1050,600,150,'candle'),Decor(475,600,75,'candle'), Decor(950,600,75,'candle')]
@@ -271,7 +307,7 @@ stop_timer=6
 n=0
 bullets=[]
 bullet_timer=15
-
+walking_reset_timer=0.5
 #GAME LOOP
 running=True
 while running:
@@ -286,6 +322,8 @@ while running:
                 blow_candle=True
         if stage=='start' and event.type == pygame.KEYDOWN:
             if event.key == pygame.K_8:
+                stage='house'
+            if event.key == pygame.K_9:
                 stage='boss'
         #Next Dialogue
         if event.type==pygame.MOUSEBUTTONDOWN:
@@ -300,8 +338,11 @@ while running:
             if stage=='house':
                 child.target_x=event.pos[0]
                 child.target_y=event.pos[1]
-        
+    map_pixel_width=location.width*location.tilewidth*map_scale
+    map_pixel_height=location.height*location.tileheight*map_scale
 
+    offset_x=(1530-map_pixel_width)//2
+    offset_y=(880-map_pixel_height)//2
     keys=pygame.key.get_pressed()
     #Cutscene movement  
     if stage=='cutscene' and active_chatbox==None:
@@ -330,14 +371,42 @@ while running:
     if (stage=='house' or stage=='boss') and active_chatbox==None:    
         dx=0
         dy=0
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:dx-=1
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:dx+=1
-        if keys[pygame.K_UP] or keys[pygame.K_w]:dy-=1
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]:dy+=1
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            dx-=1
+            player.is_walking=True
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            dx+=1
+            player.is_walking=True
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
+            dy-=1
+            player.is_walking=True
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            dy+=1
+            player.is_walking=True
         if dx!=0 or dy!=0:
             length=math.hypot(dx,dy)
             player.x+=dx*player.speed/length
+            player.update()
+            for rect in current_collisions:
+                if player.rect.colliderect(rect):
+                    if dx>0:
+                        player.rect.right=rect.left
+                    elif dx<0:
+                        player.rect.left=rect.right
+                    player.x=player.rect.x
             player.y+=dy*player.speed/length
+            player.update()
+            for rect in current_collisions:
+                if player.rect.colliderect(rect):
+                    if dy>0:
+                        player.rect.bottom=rect.top
+                    elif dy<0:
+                        player.rect.top=rect.bottom
+                    player.y=player.rect.y
+        if dx==1:player.direction='right'
+        if dx==-1:player.direction='left'
+        if dy==1:player.direction='down'
+        if dy==-1:player.direction='up'
 
 
     #LOGIC HANDLING
@@ -386,6 +455,22 @@ while running:
     #Stage 3 Logic
     elif stage=='house':
         child.move_towards(dt)
+        
+        for door in doors:
+            if door.origin==location and door.rect.colliderect(player.rect):
+                location=door.goal
+                x=door.paired_door.x
+                y=door.paired_door.y
+                if player.direction=='right':x+=50
+                if player.direction=='left':x-=100
+                if player.direction=='up':y-=100
+                if player.direction=='down':y+=100
+                player.x=x
+                player.y=y
+                player.update() 
+        
+        current_collisions=get_map_collision(location,map_scale,offset_x,offset_y)
+        
 
         
 
@@ -533,7 +618,11 @@ while running:
                         pixel_x=x*location.tilewidth*map_scale+offset_x
                         pixel_y=y*location.tileheight*map_scale+offset_y
                         screen.blit(tile_image,(pixel_x,pixel_y))
-
+        walking_reset_timer-=dt
+        if walking_reset_timer<0:
+            if player.is_walking:
+                player.is_walking=False
+        player.update()
         player.draw(screen)
         for npc in npcs:
             npc.animation_timer+=dt
@@ -558,6 +647,15 @@ while running:
             active_chatbox.update()
             active_chatbox.draw(screen)
         
+        map_pixel_width=location.width*location.tilewidth*map_scale
+        map_pixel_height=location.height*location.tileheight*map_scale
+
+        offset_x=(1530-map_pixel_width)//2
+        offset_y=(880-map_pixel_height)//2
+        for rect in current_collisions:
+            debug_rect=pygame.Rect(rect.x,rect.y,rect.width,rect.height)
+            pygame.draw.rect(screen,(255,0,0),debug_rect,2)
+    
 
 
     #Stage 7 Rendering
