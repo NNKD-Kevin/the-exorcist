@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="5" height="4" tilewidth="48" tileheight="48" infinite="0" nextlayerid="5" nextobjectid="1">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="5" height="4" tilewidth="48" tileheight="48" infinite="0" nextlayerid="5" nextobjectid="10">
  <tileset firstgid="1" source="Modern House Bathroom 2.0.tsx"/>
  <layer id="1" name="Tile Layer 1" width="5" height="4">
   <data encoding="csv">
@@ -25,5 +25,12 @@
 0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="4" name="Object Layer 1"/>
+ <objectgroup id="4" name="Object Layer 1">
+  <object id="2" x="223" y="168" width="11.6667" height="11"/>
+  <object id="3" x="233.333" y="157.667" width="6" height="14"/>
+  <object id="4" x="239.333" y="0" width="17" height="208.667"/>
+  <object id="7" x="-0.333333" y="190.667" width="239.667" height="18"/>
+  <object id="8" x="-18.3333" y="0" width="17.6667" height="190.333"/>
+  <object id="9" x="-0.666667" y="-1.33333" width="240.667" height="49.3333"/>
+ </objectgroup>
 </map>

@@ -72,25 +72,23 @@ class Playertest:
 class Player:
     def __init__(self):
         self.x=700
-        self.y=700
+        self.y=600
         self.direction='right'
         self.show=True
-        self.img="assets/characters/main_character.png"
-        self.speed=6
+        self.speed=3
         self.health=100
         self.direction='right'
-        self.is_walking=False
+        self.x_direction='right'
+        self.is_moving=False
         idle_path="assets/characters/priest_idling"
         walk_path="assets/characters/priest_walking"
-        self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (60,90 )) for f in os.listdir(idle_path) if f.endswith(".png")]
-        self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (60, 90)) for f in os.listdir(walk_path) if f.endswith(".png")]
+        self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (23*4,27*4 )) for f in os.listdir(idle_path) if f.endswith(".png")]
+        self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (23*4, 27*4)) for f in os.listdir(walk_path) if f.endswith(".png")]
         self.idle_index=0
         self.walk_index=0
         self.img=self.idles[self.idle_index]
         self.animation_timer=0
         self.animation_speed=0.1
-        self.img = pygame.image.load(self.img).convert_alpha()
-        self.img = pygame.transform.scale(self.img, (100, 100))
         self.rect=pygame.Rect(self.x,self.y,100,100)
     def draw(self,screen):
         if self.show:
@@ -109,15 +107,15 @@ class Character:
         if name=='maid':
             idle_path="assets/characters/maid_idling"
             walk_path="assets/characters/maid_walking"
-            self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (60,90 )) for f in os.listdir(idle_path) if f.endswith(".png")]
-            self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (60, 90)) for f in os.listdir(walk_path) if f.endswith(".png")]
+            self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (23*4,27*4 )) for f in os.listdir(idle_path) if f.endswith(".png")]
+            self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (23*4, 27*4)) for f in os.listdir(walk_path) if f.endswith(".png")]
         elif name=='grandpa':
             self.img="assets/characters/grandpa.png"
         elif name=='child':
             idle_path="assets/characters/child_idling"
             walk_path="assets/characters/child_walking"
-            self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (48,80 )) for f in os.listdir(idle_path) if f.endswith(".png")]
-            self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (48, 80)) for f in os.listdir(walk_path) if f.endswith(".png")]
+            self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (13*4,20*4 )) for f in os.listdir(idle_path) if f.endswith(".png")]
+            self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (13*4, 20*4)) for f in os.listdir(walk_path) if f.endswith(".png")]
         self.is_moving=False
         self.idle_index=0
         self.walk_index=0
@@ -145,7 +143,7 @@ class Character:
         
 class Chatbox:
     def __init__(self,character,content):
-        img_path="assets/characters/main_character.png"
+        img_path="assets/characters/priest-icon.png"
         if character=='maid':
             img_path="assets/characters/maid.png"
         elif character=='grandpa':
@@ -153,7 +151,7 @@ class Chatbox:
         self.full_content=content
         self.displayed_content=""
         self.img = pygame.image.load(img_path).convert_alpha()
-        self.img = pygame.transform.scale(self.img, (100, 100))
+        self.img = pygame.transform.scale(self.img, (150, 150))
         self.rect=pygame.Rect(50,650,1400,200)
 
         self.typing_speed=2
@@ -170,7 +168,7 @@ class Chatbox:
     def draw(self,screen):
         pygame.draw.rect(screen,light_wood,self.rect,0)
         pygame.draw.rect(screen,beige,(75,675,150,150))
-        screen.blit(self.img, (100,725))
+        screen.blit(self.img, (75,675))
         draw_text(self.displayed_content,chat_font,(0,0,0),250,700)
         if not self.is_typing:
             draw_text("Click to continue",small_font,(0,0,0),1275,800)
@@ -228,18 +226,25 @@ class Door:
     def __init__(self,x,y,origin,goal):
         self.x=x
         self.y=y
-        self.rect=pygame.Rect(x,y,20,100)
+        self.rect=pygame.Rect(x,y,10,100)
         self.origin=origin
         self.goal=goal
         self.paired_door=None
         if self.origin==living_room and self.goal==bathroom:
             self.rect=pygame.Rect(x,y,60,100)
         if self.origin==bathroom and self.goal==living_room:
-            self.rect=pygame.Rect(x,y,100,20)
+            self.rect=pygame.Rect(x,y,100,10)
     def draw(self,screen):
         pygame.draw.rect(screen,(255,255,255),self.rect,0)
-    
-
+class Object:
+    def __init__(self,x,y,location,item):
+        self.x=x
+        self.y=y
+        self.item=item
+        self.location=location
+        self.rect=pygame.Rect(self.x,self.y,50,50)
+    def draw(self,screen):
+        pygame.draw.rect(screen,(255,0,0),self.rect,2)
 #Dialogue Management system
 active_dialogue_index=0
 active_chat_index=0
@@ -256,16 +261,17 @@ kitchen=load_pygame('assets/bg/kitchen_map.tmx')
 bedroom1=load_pygame('assets/bg/bedroom_map.tmx')
 bedroom2=load_pygame('assets/bg/bedroom2_map.tmx')
 map_scale=2.5
+black_screen=pygame.Rect(0,0,1530,880)
 scaled_tile_cache={}
 current_bg = cutscene_bg
 location=living_room
 current_collisions=[]
 doors=[
-    Door(205,400,living_room,bedroom1),Door(1305,350,living_room,kitchen),Door(400,220,living_room,bathroom), #Living Room
-    Door(1185,600,bedroom1,living_room), #Bedroom 1
-    Door(385,400,kitchen,living_room),Door(1125,550,kitchen,bedroom2), #Kitchen
-    Door(445,400,bedroom2,kitchen), #Bedroom 2
-    Door(500,680,bathroom,living_room) #Bathroom
+    Door(225,400,living_room,bedroom1),Door(1295,350,living_room,kitchen),Door(400,220,living_room,bathroom), #Living Room
+    Door(1175,600,bedroom1,living_room), #Bedroom 1
+    Door(400,400,kitchen,living_room),Door(1115,550,kitchen,bedroom2), #Kitchen
+    Door(455,400,bedroom2,kitchen), #Bedroom 2
+    Door(500,670,bathroom,living_room) #Bathroom
        ]
 for door1 in doors:
     for door2 in doors:
@@ -281,7 +287,7 @@ def get_map_collision(map,scale,offset_x,offset_y):
                 rects.append(scaled_rect)
     return rects
 
-
+objects=[Object(1000,200,living_room,'tivi')]
 candles=[Decor(100,600,250,'candle'),Decor(1200,600,250,'candle'),Decor(300,600,150,'candle'),Decor(1050,600,150,'candle'),Decor(475,600,75,'candle'), Decor(950,600,75,'candle')]
 fires=[Decor(165,560,100,'fire'),Decor(1270,560,100,'fire'),Decor(345,585,50,'fire'),Decor(1095,585,50,'fire'),Decor(500,592,25,'fire'),Decor(975,592,25,'fire')]
 playertest=Playertest()
@@ -308,6 +314,8 @@ n=0
 bullets=[]
 bullet_timer=15
 walking_reset_timer=0.5
+teleport_timer=0.5
+teleported=True
 #GAME LOOP
 running=True
 while running:
@@ -344,6 +352,12 @@ while running:
     offset_x=(1530-map_pixel_width)//2
     offset_y=(880-map_pixel_height)//2
     keys=pygame.key.get_pressed()
+    if keys[pygame.K_LSHIFT]:
+        player.speed=6
+        player.animation_speed=0.05
+    if not keys[pygame.K_LSHIFT]:
+        player.speed=3
+        player.animation_speed=0.1
     #Cutscene movement  
     if stage=='cutscene' and active_chatbox==None:
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and playertest.x>0:
@@ -367,22 +381,22 @@ while running:
             location=kitchen
         if keys[pygame.K_5]:
             location=bathroom
-    #MOVEMENT 
-    if (stage=='house' or stage=='boss') and active_chatbox==None:    
+    #MOVEMENT
+    if (stage=='house' or stage=='boss') and active_chatbox==None  and teleported==True:    
         dx=0
         dy=0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             dx-=1
-            player.is_walking=True
+            player.is_moving=True
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             dx+=1
-            player.is_walking=True
+            player.is_moving=True
         if keys[pygame.K_UP] or keys[pygame.K_w]:
             dy-=1
-            player.is_walking=True
+            player.is_moving=True
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             dy+=1
-            player.is_walking=True
+            player.is_moving=True
         if dx!=0 or dy!=0:
             length=math.hypot(dx,dy)
             player.x+=dx*player.speed/length
@@ -403,8 +417,8 @@ while running:
                     elif dy<0:
                         player.rect.top=rect.bottom
                     player.y=player.rect.y
-        if dx==1:player.direction='right'
-        if dx==-1:player.direction='left'
+        if dx==1:player.direction,player.x_direction='right','right'
+        if dx==-1:player.direction,player.x_direction='left','left'
         if dy==1:player.direction='down'
         if dy==-1:player.direction='up'
 
@@ -455,19 +469,35 @@ while running:
     #Stage 3 Logic
     elif stage=='house':
         child.move_towards(dt)
+        if teleported:
+            for door in doors:
+                if door.origin==location and door.rect.colliderect(player.rect):
+                    location=door.goal
+                    x=door.paired_door.x
+                    y=door.paired_door.y
+                    if door.origin==bedroom1:x+=50 #Bedroom1
+                    if door.origin==bedroom2:x-=100 #Bedroom2
+                    if door.origin==bathroom:y+=100 #Bathroom
+                    if door.origin==kitchen:
+                        if door.goal==living_room:x-=100
+                        elif door.goal==bedroom2:x+=50
+                    if door.origin==living_room:
+                        if door.goal==bedroom1:x-=100
+                        elif door.goal==kitchen:x+=50
+                        elif door.goal==bathroom:y-=100
+                    player.x=x
+                    player.y=y
+                    player.update()
+                    teleported=False
+            
+            
+        else:
+            teleport_timer-=dt
+            if teleport_timer<0:
+                teleport_timer=0.5
+                teleported=True
+            
         
-        for door in doors:
-            if door.origin==location and door.rect.colliderect(player.rect):
-                location=door.goal
-                x=door.paired_door.x
-                y=door.paired_door.y
-                if player.direction=='right':x+=50
-                if player.direction=='left':x-=100
-                if player.direction=='up':y-=100
-                if player.direction=='down':y+=100
-                player.x=x
-                player.y=y
-                player.update() 
         
         current_collisions=get_map_collision(location,map_scale,offset_x,offset_y)
         
@@ -593,6 +623,7 @@ while running:
 
     #Stage 3 Rendering
     elif stage=='house':
+        brightness=150
         screen.fill((0,0,0))
         map_pixel_width=location.width*location.tilewidth*map_scale
         map_pixel_height=location.height*location.tileheight*map_scale
@@ -620,10 +651,25 @@ while running:
                         screen.blit(tile_image,(pixel_x,pixel_y))
         walking_reset_timer-=dt
         if walking_reset_timer<0:
-            if player.is_walking:
-                player.is_walking=False
+            walking_reset_timer=0.5
+            if player.is_moving:
+                player.is_moving=False
+
+        player.animation_timer+=dt
+        if player.animation_timer>player.animation_speed:
+            player.animation_timer=0
+            if player.is_moving==False:
+                player.idle_index+=1
+                player.img=player.idles[player.idle_index%len(player.idles)]
+                if player.x_direction!='right':
+                    player.img=pygame.transform.flip(player.img,True,False)
+            else:
+                player.walk_index+=1
+                player.img=player.walks[player.walk_index%len(player.walks)]
+                if player.x_direction=='left':
+                    player.img=pygame.transform.flip(player.img,True,False)
+        
         player.update()
-        player.draw(screen)
         for npc in npcs:
             npc.animation_timer+=dt
             if npc.animation_timer>npc.animation_speed:
@@ -638,7 +684,21 @@ while running:
                     npc.img=npc.walks[npc.walk_index%len(npc.walks)]
                     if npc.direction=='left':
                         npc.img=pygame.transform.flip(npc.img,True,False)
+            
             npc.draw(screen)
+        for object in objects:
+            if object.location==location:
+                player.update()
+                dx=abs(object.x-player.x)
+                dy=abs(object.y-player.y)
+                distance=math.hypot(dx,dy)
+                if distance<100:
+                    object.draw(screen)
+                    draw_text(f'E',chat_font,(255,255,255),object.x+50,object.y-50)
+        
+
+            
+        player.draw(screen)
 
         for door in doors:
             if door.origin==location:
@@ -652,9 +712,11 @@ while running:
 
         offset_x=(1530-map_pixel_width)//2
         offset_y=(880-map_pixel_height)//2
-        for rect in current_collisions:
-            debug_rect=pygame.Rect(rect.x,rect.y,rect.width,rect.height)
-            pygame.draw.rect(screen,(255,0,0),debug_rect,2)
+        #for rect in current_collisions:
+        #    debug_rect=pygame.Rect(rect.x,rect.y,rect.width,rect.height)
+        #    pygame.draw.rect(screen,(255,0,0),debug_rect,2)
+        if not teleported:
+            pygame.draw.rect(screen,(0,0,0),black_screen)
     
 
 
@@ -662,7 +724,20 @@ while running:
     elif stage=='boss':
         screen.fill((0,0,0))
 
-
+        player.animation_timer+=dt
+        if player.animation_timer>player.animation_speed:
+            player.animation_timer=0
+            if player.is_moving==False:
+                player.idle_index+=1
+                player.img=player.idles[player.idle_index%len(player.idles)]
+                if player.x_direction=='left':
+                    player.img=pygame.transform.flip(player.img,True,False)
+            else:
+                player.walk_index+=1
+                player.img=player.walks[player.walk_index%len(player.walks)]
+                if player.x_direction=='left':
+                    player.img=pygame.transform.flip(player.img,True,False)
+                
         player.update()
         for bullet in bullets:
             bullet.update()

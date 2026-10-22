@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="9" height="6" tilewidth="48" tileheight="48" infinite="0" nextlayerid="5" nextobjectid="35">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="9" height="6" tilewidth="48" tileheight="48" infinite="0" nextlayerid="5" nextobjectid="57">
  <tileset firstgid="1" source="living_room.tsx"/>
  <layer id="1" name="Tile Layer 1" width="9" height="6">
   <data encoding="csv">
@@ -24,13 +24,18 @@
  <objectgroup id="4" name="Collision">
   <object id="12" x="342.5" y="203" width="35" height="23"/>
   <object id="26" x="290.5" y="204.5" width="10" height="31.5"/>
-  <object id="27" x="342.5" y="169" width="36" height="11.5"/>
+  <object id="27" x="342.5" y="167" width="30" height="13.5"/>
   <object id="28" x="418" y="210.5" width="12" height="24"/>
   <object id="29" x="419.5" y="197" width="10" height="12"/>
   <object id="30" x="417.5" y="248" width="14" height="37.5"/>
-  <object id="31" x="0.5" y="-0.5" width="432" height="49.5"/>
   <object id="33" x="2" y="241" width="5.5" height="47"/>
-  <object id="34" x="60" y="299.5"/>
+  <object id="35" x="432" y="-1.5" width="12.5" height="289"/>
+  <object id="36" x="-0.5" y="287.5" width="433" height="19"/>
+  <object id="39" x="-14" y="0.333333" width="13" height="286.667"/>
+  <object id="42" x="272.667" y="-87.3333">
+   <capsule/>
+  </object>
+  <object id="49" x="-0.666667" y="-1.33333" width="432.667" height="61.3333"/>
  </objectgroup>
  <layer id="3" name="Tile Layer 3" width="9" height="6">
   <data encoding="csv">

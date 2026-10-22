@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="7" height="5" tilewidth="48" tileheight="48" infinite="0" nextlayerid="4" nextobjectid="6">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="7" height="5" tilewidth="48" tileheight="48" infinite="0" nextlayerid="4" nextobjectid="12">
  <tileset firstgid="1" source="bedroom.tsx"/>
  <layer id="1" name="Tile Layer 1" width="7" height="5">
   <data encoding="csv">
@@ -24,6 +24,10 @@
   <object id="2" x="51.8641" y="105.529" width="39.6184" height="42.8599"/>
   <object id="3" x="244.193" y="104.809" width="41.4192" height="46.1014"/>
   <object id="4" x="289.214" y="51.8641" width="44.3006" height="10.805"/>
-  <object id="5" x="0" y="113.813" width="29.1735" height="9.72451"/>
+  <object id="5" x="0" y="109.313" width="29.1735" height="14.2245"/>
+  <object id="8" x="335" y="-1" width="18.5" height="241.5"/>
+  <object id="9" x="-1" y="239.5" width="335" height="19.5"/>
+  <object id="10" x="-21" y="0.5" width="20" height="237.5"/>
+  <object id="11" x="0" y="-0.5" width="337" height="55"/>
  </objectgroup>
 </map>

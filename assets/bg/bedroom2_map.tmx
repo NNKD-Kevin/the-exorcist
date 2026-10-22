@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="5" height="4" tilewidth="48" tileheight="48" infinite="0" nextlayerid="3" nextobjectid="1">
+<map version="1.10" tiledversion="1.12.2" orientation="orthogonal" renderorder="right-down" width="5" height="4" tilewidth="48" tileheight="48" infinite="0" nextlayerid="4" nextobjectid="9">
  <tileset firstgid="1" source="bedroom.tsx"/>
  <tileset firstgid="65" source="living_room.tsx"/>
  <layer id="1" name="Tile Layer 1" width="5" height="4">
@@ -18,4 +18,13 @@
 0,0,0,0,10
 </data>
  </layer>
+ <objectgroup id="3" name="Object Layer 1">
+  <object id="2" x="146.667" y="56.6667" width="41.3333" height="17"/>
+  <object id="3" x="194.333" y="56.3333" width="42" height="18"/>
+  <object id="4" x="196.667" y="105" width="40.3333" height="42"/>
+  <object id="5" x="239.667" y="44.6667" width="17.3333" height="147.667"/>
+  <object id="6" x="0" y="191.333" width="240.333" height="15.6667"/>
+  <object id="7" x="-13.3333" y="43.6667" width="12.6667" height="147"/>
+  <object id="8" x="-0.666667" y="-0.666667" width="240" height="56.3333"/>
+ </objectgroup>
 </map>
