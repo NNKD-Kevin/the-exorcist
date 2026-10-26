@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 import os
+import sys
 import pytmx
 from pytmx.util_pygame import load_pygame
 
@@ -13,13 +14,20 @@ pygame.display.set_caption("The Exorcist")
 stage='start'
 clock=pygame.time.Clock()
 
+def get_resource_path(relative_path):
+    try:
+        base_path=sys._MEIPASS
+    except Exception:
+        base_path=os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 #Color
 light_wood=(199,153,82)
 beige=(237,203,152)
 #Font
-game_title=pygame.font.Font('assets//Font//bloodfont.ttf',175)
-chat_font=pygame.font.Font('assets/Font/gothic.ttf', 50)
-small_font=pygame.font.Font('assets/Font/gothic.ttf', 20)
+game_title=pygame.font.Font(get_resource_path('assets//Font//bloodfont.ttf'),150)
+chat_font=pygame.font.Font(get_resource_path('assets/Font/gothic.ttf'), 50)
+small_font=pygame.font.Font(get_resource_path('assets/Font/gothic.ttf'), 20)
 
 
 #Functions
@@ -49,9 +57,9 @@ class Decor:
         self.y=y 
         self.size=size
         if type=='candle':
-            self.img="assets/stock/candle.png"
+            self.img=get_resource_path("assets/stock/candle.png")
         elif type=='fire':
-            self.img='assets/stock/fire.jpeg'
+            self.img=get_resource_path('assets/stock/fire.jpeg')
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (size, size))
     def draw(self,screen):
@@ -62,7 +70,7 @@ class Playertest:
         self.y=525
         self.direction='right'
         self.show=True
-        self.img="assets/bg/mc.png"
+        self.img=get_resource_path("assets/bg/mc.png")
         self.speed=5
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (100, 100))
@@ -80,8 +88,8 @@ class Player:
         self.direction='right'
         self.x_direction='right'
         self.is_moving=False
-        idle_path="assets/characters/priest_idling"
-        walk_path="assets/characters/priest_walking"
+        idle_path=get_resource_path("assets/characters/priest_idling")
+        walk_path=get_resource_path("assets/characters/priest_walking")
         self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (23*4,27*4 )) for f in os.listdir(idle_path) if f.endswith(".png")]
         self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (23*4, 27*4)) for f in os.listdir(walk_path) if f.endswith(".png")]
         self.idle_index=0
@@ -105,16 +113,16 @@ class Character:
         self.target_y=y
         self.direction='right'
         if name=='maid':
-            idle_path="assets/characters/maid_idling"
-            walk_path="assets/characters/maid_walking"
+            idle_path=get_resource_path("assets/characters/maid_idling")
+            walk_path=get_resource_path("assets/characters/maid_walking")
             self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (23*4,27*4 )) for f in os.listdir(idle_path) if f.endswith(".png")]
             self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (23*4, 27*4)) for f in os.listdir(walk_path) if f.endswith(".png")]
             self.rect=pygame.Rect(self.x,self.y,23*4,27*4)
         elif name=='grandpa':
-            self.img="assets/characters/grandpa.png"
+            self.img=get_resource_path("assets/characters/grandpa.png")
         elif name=='child':
-            idle_path="assets/characters/child_idling"
-            walk_path="assets/characters/child_walking"
+            idle_path=get_resource_path("assets/characters/child_idling")
+            walk_path=get_resource_path("assets/characters/child_walking")
             self.idles=[pygame.transform.scale(pygame.image.load(f"{idle_path}/{f}").convert_alpha(), (13*4,20*4 )) for f in os.listdir(idle_path) if f.endswith(".png")]
             self.walks=[pygame.transform.scale(pygame.image.load(f"{walk_path}/{f}").convert_alpha(), (13*4, 20*4)) for f in os.listdir(walk_path) if f.endswith(".png")]
             self.rect=pygame.Rect(self.x,self.y,13*4,20*4)
@@ -149,11 +157,11 @@ class Character:
         
 class Chatbox:
     def __init__(self,character,content):
-        img_path="assets/characters/priest-icon.png"
+        img_path=get_resource_path("assets/characters/priest-icon.png")
         if character=='maid':
-            img_path="assets/characters/maid.png"
+            img_path=get_resource_path("assets/characters/maid.png")
         elif character=='grandpa':
-            img_path="assets/characters/grandpa.png"
+            img_path=get_resource_path("assets/characters/grandpa.png")
         self.full_content=content
         self.displayed_content=""
         self.img = pygame.image.load(img_path).convert_alpha()
@@ -184,7 +192,7 @@ class Boss:
     def __init__(self,x,y):
         self.x=x
         self.y=y
-        self.img="assets/characters/cursed_child2.png"
+        self.img=get_resource_path("assets/characters/cursed_child2.png")
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (100, 100))
     def draw(self,screen):
@@ -195,7 +203,7 @@ class Boss_Attack:
     def __init__(self,x,y):
         self.x=x
         self.y=y
-        self.img="assets/characters/cross1.png"
+        self.img=get_resource_path("assets/characters/cross1.png")
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (150, 150))
         self.rect=pygame.Rect(x+20,y+20,110,110)
@@ -205,7 +213,7 @@ class Boss_Pattern:
     def __init__(self,x,y):
         self.x=x
         self.y=y
-        self.img="assets/characters/pentagon.png"
+        self.img=get_resource_path("assets/characters/pentagon.png")
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (150, 150))
         self.rect=pygame.Rect(x,y,150,150)
@@ -216,7 +224,7 @@ class Bullet:
         self.direction = angle
         self.x=cursed_child.x
         self.y=cursed_child.y
-        self.img="assets/characters/cross2.png"
+        self.img=get_resource_path("assets/characters/cross2.png")
         self.img = pygame.image.load(self.img).convert_alpha()
         self.img = pygame.transform.scale(self.img, (100, 100))
         self.rect=pygame.Rect(self.x+15,self.y+15,70,70)
@@ -266,15 +274,15 @@ active_chat_index=0
 active_chatbox=Chatbox(dialogues[active_dialogue_index][active_chat_index][0],dialogues[active_dialogue_index][active_chat_index][1])
 
 #Background
-cutscene_bg = pygame.image.load("assets/bg/background.png").convert_alpha()
+cutscene_bg = pygame.image.load(get_resource_path("assets/bg/background.png")).convert_alpha()
 cutscene_bg = pygame.transform.scale(cutscene_bg, (1530, 880))
-cutscene_bg2 = pygame.image.load("assets/bg/background2.png").convert_alpha()
+cutscene_bg2 = pygame.image.load(get_resource_path("assets/bg/background2.png")).convert_alpha()
 cutscene_bg2= pygame.transform.scale(cutscene_bg2, (1530, 880))
-living_room=load_pygame('assets/bg/living_room_map.tmx')
-bathroom=load_pygame('assets/bg/bathroom_map.tmx')
-kitchen=load_pygame('assets/bg/kitchen_map.tmx')
-bedroom1=load_pygame('assets/bg/bedroom_map.tmx')
-bedroom2=load_pygame('assets/bg/bedroom2_map.tmx')
+living_room=load_pygame(get_resource_path('assets/bg/living_room_map.tmx'))
+bathroom=load_pygame(get_resource_path('assets/bg/bathroom_map.tmx'))
+kitchen=load_pygame(get_resource_path('assets/bg/kitchen_map.tmx'))
+bedroom1=load_pygame(get_resource_path('assets/bg/bedroom_map.tmx'))
+bedroom2=load_pygame(get_resource_path('assets/bg/bedroom2_map.tmx'))
 map_scale=2.5
 black_screen=pygame.Rect(0,0,1530,880)
 scaled_tile_cache={}
@@ -402,17 +410,7 @@ while running:
             if playertest.direction=='left':
                 playertest.direction='right'
                 playertest.img=pygame.transform.flip(playertest.img, True, False)
-    if stage=='house' and active_chatbox==None:
-        if keys[pygame.K_1]:
-            location=living_room
-        if keys[pygame.K_2]:
-            location=bedroom1
-        if keys[pygame.K_3]:
-            location=bedroom2
-        if keys[pygame.K_4]:
-            location=kitchen
-        if keys[pygame.K_5]:
-            location=bathroom
+
     #MOVEMENT
     if (stage=='house' or stage=='boss') and active_chatbox==None  and teleported==True and interacting==False:    
         dx=0
@@ -646,9 +644,9 @@ while running:
         rotated_cross=pygame.transform.rotate(cross_surf,45)
         cross_rect=rotated_cross.get_rect(center=(1000, 200))
         screen.blit(rotated_cross,cross_rect)
-        draw_text("The Exorcist",game_title,(255,0,0),350,200)
+        draw_text("Dark Possession",game_title,(255,0,0),300,200)
 
-        dynamic_font=pygame.font.Font('assets//Font//bloodfont.ttf',30+int(math.sin(time_ms*0.002)*4))
+        dynamic_font=pygame.font.Font(get_resource_path('assets//Font//bloodfont.ttf'),30+int(math.sin(time_ms*0.002)*4))
         text_surf=dynamic_font.render("Press Enter to start",True,(255,0,0))
         text_surf1=pygame.transform.rotate(text_surf,10)
         text_rect=text_surf1.get_rect(center=(750, 500))
